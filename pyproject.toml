@@ -13,6 +13,7 @@ pypdf = "^3.16.2"
 chromadb = "^0.4.13"
 tiktoken = "^0.5.1"
 openai = "^0.28.1"
+streamlit-extras = "^0.3.2"
 
 
 [build-system]
