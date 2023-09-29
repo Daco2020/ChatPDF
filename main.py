@@ -3,6 +3,7 @@ import sys
 
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 
+from typing import Any
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
@@ -10,11 +11,24 @@ from langchain.vectorstores import Chroma
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 from streamlit.runtime.uploaded_file_manager import UploadedFile
+from langchain.callbacks.base import BaseCallbackHandler
+from streamlit.delta_generator import DeltaGenerator
 import streamlit as st
 import tempfile
 import os
 
 from streamlit_extras.buy_me_a_coffee import button
+
+
+class StreamHandler(BaseCallbackHandler):
+    def __init__(self, container: DeltaGenerator, initial_text: str = ""):
+        self.container = container
+        self.text = initial_text
+
+    def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
+        self.text += token
+        self.container.markdown(self.text)
+
 
 # 후원 버튼
 button(username="daco2020", floating=True, width=221)
@@ -80,11 +94,14 @@ if uploaded_file is not None:
 
     if st.button("전송"):
         with st.spinner("잠시만 기다려주세요..."):
+            chat_box = st.empty()
+            stream_handler = StreamHandler(container=chat_box)
             llm = ChatOpenAI(
                 openai_api_key=openai_key,
                 model_name="gpt-3.5-turbo",
                 temperature=0.5,
                 streaming=True,
+                callbacks=[stream_handler],
             )
             qa_chain = RetrievalQA.from_chain_type(llm, retriever=db.as_retriever())
             result = qa_chain.run(query=q)
