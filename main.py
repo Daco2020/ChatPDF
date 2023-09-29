@@ -17,8 +17,6 @@ import streamlit as st
 import tempfile
 import os
 
-from streamlit_extras.buy_me_a_coffee import button
-
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container: DeltaGenerator, initial_text: str = ""):
@@ -29,6 +27,8 @@ class StreamHandler(BaseCallbackHandler):
         self.text += token
         self.container.markdown(self.text)
 
+
+from streamlit_extras.buy_me_a_coffee import button
 
 # 후원 버튼
 button(username="daco2020", floating=True, width=221)
@@ -89,7 +89,7 @@ if uploaded_file is not None:
     # docs = retriever_from_llm.get_relevant_documents(query=q)
 
     # 질문 답변
-    st.header("질문")
+    st.header("PDF에게 질문해보세요")
     q = st.text_input("질문을 입력하세요")
 
     if st.button("전송"):
@@ -104,5 +104,5 @@ if uploaded_file is not None:
                 callbacks=[stream_handler],
             )
             qa_chain = RetrievalQA.from_chain_type(llm, retriever=db.as_retriever())
-            result = qa_chain.run(query=q)
-            st.write(result)
+            result = qa_chain({"query": q})
+            st.write(result["result"])
