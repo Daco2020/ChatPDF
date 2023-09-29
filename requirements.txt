@@ -1,0 +1,7 @@
+langchain
+openai
+pypdf
+python-dotenv
+chromadb
+tiktoken
+apsw
